@@ -14,6 +14,7 @@ import {
   LogOut,
   MessageCircle,
   MoreHorizontal,
+  Moon,
   Play,
   Search,
   Send,
@@ -21,14 +22,16 @@ import {
   Shield,
   Sparkles,
   Star,
+  Sun,
   Trophy,
   Users,
   Zap,
 } from "lucide-react";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 
 type View = "home" | "room" | "social" | "profile";
 type RoomTab = "chat" | "stats" | "rating";
+type Theme = "dark" | "light";
 
 type ChatMessage = {
   id: number;
@@ -101,6 +104,23 @@ export default function HomePage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(true);
   const [email, setEmail] = useState("");
+  const [theme, setTheme] = useState<Theme>("dark");
+
+  useEffect(() => {
+    const initialTheme: Theme = document.documentElement.dataset.theme === "light" ? "light" : "dark";
+    setTheme(initialTheme);
+  }, []);
+
+  function applyTheme(nextTheme: Theme) {
+    setTheme(nextTheme);
+    document.documentElement.dataset.theme = nextTheme;
+    document.documentElement.style.colorScheme = nextTheme;
+    window.localStorage.setItem("watchparty-theme", nextTheme);
+  }
+
+  function toggleTheme() {
+    applyTheme(theme === "dark" ? "light" : "dark");
+  }
 
   const liveParticipants = useMemo(() => 2847 + messages.length - initialMessages.length, [messages.length]);
 
@@ -130,6 +150,14 @@ export default function HomePage() {
   if (!loggedIn) {
     return (
       <main className="auth-shell">
+        <button
+          className="icon-button theme-toggle auth-theme-toggle"
+          onClick={toggleTheme}
+          aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+          title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
+        >
+          {theme === "dark" ? <Sun /> : <Moon />}
+        </button>
         <section className="auth-story">
           <div className="brand brand--light"><span className="brand-ball"><span /></span><span>Watch<strong>Party</strong></span></div>
           <div className="auth-copy">
@@ -174,6 +202,14 @@ export default function HomePage() {
           <NavButton active={view === "profile"} icon={<CircleUserRound />} onClick={() => navigate("profile")}>Mi perfil</NavButton>
         </nav>
         <div className="topbar-actions">
+          <button
+            className="icon-button theme-toggle"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Activar modo claro" : "Activar modo oscuro"}
+            title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
+          >
+            {theme === "dark" ? <Sun /> : <Moon />}
+          </button>
           <button className="icon-button" onClick={() => setSearchOpen((value) => !value)} aria-label="Buscar"><Search /></button>
           <button className="icon-button notification-button" aria-label="Notificaciones"><Bell /><span /></button>
           <button className="profile-trigger" onClick={() => navigate("profile")}><Avatar initials="FL" /><span><strong>Fran</strong><small>Nivel 8</small></span></button>

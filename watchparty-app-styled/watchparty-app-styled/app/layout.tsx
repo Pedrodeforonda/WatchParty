@@ -42,6 +42,29 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+const themeScript = `
+(function () {
+  try {
+    var saved = localStorage.getItem("watchparty-theme");
+    var theme = saved === "light" || saved === "dark"
+      ? saved
+      : (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark");
+    document.documentElement.dataset.theme = theme;
+    document.documentElement.style.colorScheme = theme;
+  } catch (_) {
+    document.documentElement.dataset.theme = "dark";
+    document.documentElement.style.colorScheme = "dark";
+  }
+})();
+`;
+
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return <html lang="es"><body className={`${inter.variable} ${sora.variable}`}>{children}</body></html>;
+  return (
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body className={`${inter.variable} ${sora.variable}`}>{children}</body>
+    </html>
+  );
 }

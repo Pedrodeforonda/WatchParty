@@ -51,6 +51,40 @@
   --blue-500: var(--info);
 }
 
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f4f7f5;
+  --bg-secondary: #ffffff;
+  --surface: #ffffff;
+  --surface-hover: #edf3ef;
+  --surface-strong: #e4ece6;
+  --border: #d4dfd7;
+
+  /* En light mode usamos un verde más profundo para mantener contraste. */
+  --primary: #178a3e;
+  --primary-hover: #116f32;
+  --primary-ink: #ffffff;
+
+  --text: #111a15;
+  --text-secondary: #526159;
+  --text-muted: #748078;
+
+  --live: #d9363e;
+  --warning: #b96a00;
+  --info: #2563eb;
+
+  --shadow-sm: 0 8px 24px rgba(17, 26, 21, 0.06);
+  --shadow-md: 0 16px 38px rgba(17, 26, 21, 0.09);
+  --shadow-lg: 0 26px 70px rgba(17, 26, 21, 0.13);
+
+  --lime-300: #77b82f;
+}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; background: var(--bg); }
 body {
@@ -64,6 +98,7 @@ body {
   font-family: var(--font-inter), Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  transition: background-color 180ms ease, color 180ms ease;
 }
 button, input { font: inherit; }
 button { cursor: pointer; }
@@ -156,6 +191,10 @@ h1, h2, h3, .brand, .scoreboard section strong, .room-score section strong, .pro
 }
 .icon-button:hover { transform: translateY(-1px); border-color: #34455f; background: var(--surface-hover); color: var(--text); }
 .icon-button svg { width: 19px; height: 19px; }
+.theme-toggle { position: relative; overflow: hidden; }
+.theme-toggle svg { transition: transform 180ms ease; }
+.theme-toggle:hover svg { transform: rotate(10deg) scale(1.04); }
+.auth-theme-toggle { position: fixed; top: 24px; right: 24px; z-index: 90; box-shadow: var(--shadow-sm); }
 .notification-button { position: relative; }
 .notification-button > span {
   position: absolute;
@@ -610,6 +649,58 @@ h1, h2, h3, .brand, .scoreboard section strong, .room-score section strong, .pro
 .signup-copy { margin-top: 20px; color: var(--text-secondary); font-size: 10px; text-align: center; }
 .mobile-auth-mark { display: none; }
 
+/* Light mode surface tuning
+   The semantic tokens above cover most components. These overrides adapt
+   the few intentionally dark glass/gradient surfaces from the original UI. */
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 75% -10%, rgba(23, 138, 62, 0.08), transparent 30%),
+    radial-gradient(circle at -10% 25%, rgba(37, 99, 235, 0.045), transparent 28%),
+    var(--bg);
+}
+:root[data-theme="light"] .topbar {
+  border-bottom-color: rgba(212, 223, 215, 0.92);
+  background: rgba(255, 255, 255, 0.88);
+}
+:root[data-theme="light"] .icon-button:hover,
+:root[data-theme="light"] .secondary-button:hover,
+:root[data-theme="light"] .outline-button:hover,
+:root[data-theme="light"] .quick-actions button:hover,
+:root[data-theme="light"] .match-card:hover,
+:root[data-theme="light"] .reaction-row button:hover,
+:root[data-theme="light"] .feed-card:hover {
+  border-color: #bdcec1;
+}
+:root[data-theme="light"] .hero-match {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(23, 138, 62, 0.07), transparent 32%),
+    linear-gradient(180deg, #ffffff 0%, #f7faf8 100%);
+}
+:root[data-theme="light"] .hero-match::before { border-color: rgba(17, 26, 21, 0.055); }
+:root[data-theme="light"] .match-event {
+  border-color: rgba(17, 26, 21, 0.07);
+  background: rgba(17, 26, 21, 0.035);
+}
+:root[data-theme="light"] .home-community {
+  background: linear-gradient(135deg, #ffffff, #eef5f0);
+}
+:root[data-theme="light"] .room-hero {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 247, 245, 0));
+}
+:root[data-theme="light"] .profile-hero {
+  background: linear-gradient(135deg, #ffffff 0%, #eef5f0 72%);
+}
+:root[data-theme="light"] .auth-story {
+  background: linear-gradient(145deg, #eef5f0, #ffffff);
+}
+:root[data-theme="light"] .auth-live-card {
+  background: rgba(255, 255, 255, 0.78);
+}
+:root[data-theme="light"] .live-pill { color: #b92731; }
+:root[data-theme="light"] .avatar { border-color: rgba(17, 26, 21, 0.08); }
+:root[data-theme="light"] .avatar-stack > * { border-color: var(--bg); }
+:root[data-theme="light"] .auth-theme-toggle { background: rgba(255, 255, 255, 0.92); }
+
 /* Responsive */
 @media (max-width: 980px) {
   .desktop-nav { display: none; }
@@ -718,4 +809,21 @@ h1, h2, h3, .brand, .scoreboard section strong, .room-score section strong, .pro
   .auth-panel { padding: 22px; }
   .back-to-demo { top: 20px; left: 18px; }
   .auth-form-wrap h2 { font-size: 31px; }
+}
+
+
+@media (max-width: 980px) {
+  :root[data-theme="light"] .mobile-nav {
+    border-color: rgba(17, 26, 21, 0.08);
+    background: rgba(255, 255, 255, 0.94);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

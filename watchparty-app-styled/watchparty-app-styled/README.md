@@ -31,3 +31,6 @@ El sistema visual está documentado en `DESIGN_SYSTEM.md`.
 - Títulos: Sora
 - Interfaz/texto: Inter
 - Iconos: Lucide
+
+## Temas
+El prototipo incluye Dark Mode y Light Mode. El usuario puede alternarlos desde el botón Sol/Luna de la barra superior. La elección queda persistida en el navegador y, si no existe una preferencia guardada, se toma el tema del sistema operativo.

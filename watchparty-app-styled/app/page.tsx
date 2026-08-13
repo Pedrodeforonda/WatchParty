@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-type View = "home" | "rooms" | "room" | "profile";
+type View = "home" | "rooms" | "room" | "search" | "profile";
 type RoomTab = "chat" | "stats" | "rating";
 type Theme = "dark" | "light";
 
@@ -101,7 +101,6 @@ export default function HomePage() {
   const [matchRating, setMatchRating] = useState(0);
   const [playerRatings, setPlayerRatings] = useState<Record<string, number>>({});
   const [ratingSent, setRatingSent] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [loggedIn, setLoggedIn] = useState(true);
   const [email, setEmail] = useState("");
   const [theme, setTheme] = useState<Theme>("dark");
@@ -198,6 +197,7 @@ export default function HomePage() {
         <nav className="desktop-nav" aria-label="Navegación principal">
           <NavButton active={view === "home"} icon={<Home />} onClick={() => navigate("home")}>Inicio</NavButton>
           <NavButton active={view === "rooms" || view === "room"} icon={<MessageCircle />} onClick={() => navigate("rooms")}>Salas</NavButton>
+          <NavButton active={view === "search"} icon={<Search />} onClick={() => navigate("search")}>Buscar</NavButton>
           <NavButton active={view === "profile"} icon={<CircleUserRound />} onClick={() => navigate("profile")}>Perfil</NavButton>
         </nav>
         <div className="topbar-actions">
@@ -209,11 +209,9 @@ export default function HomePage() {
           >
             {theme === "dark" ? <Sun /> : <Moon />}
           </button>
-          <button className="icon-button" onClick={() => setSearchOpen((value) => !value)} aria-label="Buscar"><Search /></button>
           <button className="icon-button notification-button" aria-label="Notificaciones"><Bell /><span /></button>
-          <button className="profile-trigger" onClick={() => navigate("profile")}><Avatar initials="FL" /><span><strong>Fran</strong><small>Nivel 8</small></span></button>
+          <button className="logout-button" onClick={() => setLoggedIn(false)} aria-label="Cerrar sesión"><LogOut /><span>Cerrar sesión</span></button>
         </div>
-        {searchOpen && <div className="search-popover"><Search size={18} /><input autoFocus placeholder="Buscar equipos, partidos o usuarios…" /><kbd>ESC</kbd></div>}
       </header>
 
       {view === "home" && <HomeView openRoom={openRoom} liveParticipants={liveParticipants} />}
@@ -238,11 +236,13 @@ export default function HomePage() {
           back={() => navigate("rooms")}
         />
       )}
-      {view === "profile" && <ProfileView onLogout={() => setLoggedIn(false)} openRoom={openRoom} />}
+      {view === "search" && <SearchView openRoom={openRoom} />}
+      {view === "profile" && <ProfileView openRoom={openRoom} />}
 
       <nav className="mobile-nav" aria-label="Navegación móvil">
         <NavButton active={view === "home"} icon={<Home />} onClick={() => navigate("home")}>Inicio</NavButton>
         <NavButton active={view === "rooms" || view === "room"} icon={<MessageCircle />} onClick={() => navigate("rooms")}>Salas</NavButton>
+        <NavButton active={view === "search"} icon={<Search />} onClick={() => navigate("search")}>Buscar</NavButton>
         <NavButton active={view === "profile"} icon={<CircleUserRound />} onClick={() => navigate("profile")}>Perfil</NavButton>
       </nav>
     </main>
@@ -373,6 +373,129 @@ function RatingPanel(props: { matchRating: number; setMatchRating: (value: numbe
   return <section className="rating-panel"><div className="rating-intro"><span className="rating-orb"><Star fill="currentColor" /></span><div><h2>¿Qué te pareció el partido?</h2><p>Tu calificación ayuda a construir la voz de la comunidad.</p></div><RatingStars value={props.matchRating} onChange={props.setMatchRating} /></div><div className="player-rating-list"><div className="player-rating-title"><h3>Calificá a los protagonistas</h3><span>Opcional</span></div>{props.players.map((player) => <article key={player.name}><Avatar initials={player.initials} tone="blue" /><div><strong>{player.name}</strong><small>#{player.number} · {player.role}</small></div><RatingStars compact value={props.playerRatings[player.name] ?? 0} onChange={(rating) => props.ratePlayer(player.name, rating)} /></article>)}</div>{props.ratingSent ? <div className="rating-success"><Sparkles size={19} /> ¡Listo! Tu calificación ya forma parte de la comunidad.</div> : <button className="primary-button primary-button--full" disabled={!props.matchRating} onClick={props.submitRating}>Publicar calificación <ChevronRight size={18} /></button>}</section>;
 }
 
-function ProfileView({ onLogout, openRoom }: { onLogout: () => void; openRoom: (tab?: RoomTab) => void }) {
-  return <div className="page profile-page"><section className="profile-hero"><div className="profile-person"><Avatar initials="FL" tone="green" size="lg" /><div><span className="level-chip"><Zap size={13} fill="currentColor" /> NIVEL 8</span><h1>Francisco Lang</h1><p>Fanático del fútbol · Buenos Aires</p></div></div><div className="profile-actions"><button className="secondary-button">Editar perfil</button><button className="icon-button" onClick={onLogout} aria-label="Cerrar sesión"><LogOut /></button></div><div className="profile-stats"><div><strong>28</strong><span>Partidos vistos</span></div><div><strong>19</strong><span>Calificaciones</span></div><div><strong>146</strong><span>Comentarios</span></div><div><strong>8</strong><span>Racha semanal</span></div></div></section><section className="profile-content"><div className="history-panel"><div className="section-heading"><div><span className="eyebrow"><History size={15} /> TU HISTORIAL</span><h2>Partidos que viviste</h2></div><button>Ver todos <ChevronRight size={16} /></button></div>{historyMatches.map((match) => <article className="history-row" key={match.date + match.home}><span>{match.date}</span><TeamMark code={match.code} variant={match.home === "River" ? "red" : match.home === "Argentina" ? "sky" : "navy"} size="sm" /><div><strong>{match.home} <em>{match.result}</em> {match.away}</strong><small>Torneo Apertura</small></div><span className="score-chip"><Star size={13} fill="currentColor" /> {match.rating}</span><button aria-label="Ver partido"><ChevronRight /></button></article>)}</div><aside className="profile-aside"><div className="achievement-card"><span><Trophy /></span><p className="eyebrow">PRÓXIMO LOGRO</p><h3>Voz de la tribuna</h3><p>Publicá 4 comentarios más para desbloquear este logro.</p><div className="progress-bar"><span style={{ width: "72%" }} /></div><small>18 de 25 comentarios</small></div><div className="favorite-card"><h3>Tu equipo favorito</h3><div><TeamMark code="RIV" variant="red" /><span><strong>River Plate</strong><small>8 partidos registrados</small></span></div><button onClick={() => openRoom("rating")}>Calificar partido actual <ChevronRight size={16} /></button></div></aside></section></div>;
+function SearchView({ openRoom }: { openRoom: (tab?: RoomTab) => void }) {
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<"all" | "teams" | "matches" | "users">("all");
+
+  const teams = [
+    { name: "River Plate", meta: "Tu equipo favorito", code: "RIV", variant: "red" as const },
+    { name: "Boca Juniors", meta: "Liga Argentina", code: "BOC", variant: "gold" as const },
+    { name: "Racing Club", meta: "Liga Argentina", code: "RAC", variant: "sky" as const },
+    { name: "San Lorenzo", meta: "Liga Argentina", code: "CAS", variant: "navy" as const },
+  ];
+  const matches = [
+    { name: "River Plate vs Boca Juniors", meta: "En vivo · 68' · Torneo Apertura", codes: ["RIV", "BOC"], live: true },
+    { name: "Racing vs Independiente", meta: "Mañana · 17:00", codes: ["RAC", "IND"], live: false },
+    { name: "San Lorenzo vs Huracán", meta: "Sáb 9 · 19:30", codes: ["CAS", "HUR"], live: false },
+  ];
+  const users = [
+    { name: "Lucía Cabrera", meta: "42 partidos · 31 reseñas", initials: "LC", tone: "purple" },
+    { name: "Mateo Ruiz", meta: "36 partidos · 28 reseñas", initials: "MR", tone: "blue" },
+    { name: "Sofía Méndez", meta: "51 partidos · 44 reseñas", initials: "SM", tone: "green" },
+  ];
+
+  const normalized = query.trim().toLocaleLowerCase("es");
+  const matchQuery = (value: string) => !normalized || value.toLocaleLowerCase("es").includes(normalized);
+  const visibleTeams = teams.filter((item) => matchQuery(`${item.name} ${item.meta}`));
+  const visibleMatches = matches.filter((item) => matchQuery(`${item.name} ${item.meta}`));
+  const visibleUsers = users.filter((item) => matchQuery(`${item.name} ${item.meta}`));
+  const resultCount =
+    (category === "all" || category === "teams" ? visibleTeams.length : 0) +
+    (category === "all" || category === "matches" ? visibleMatches.length : 0) +
+    (category === "all" || category === "users" ? visibleUsers.length : 0);
+
+  return (
+    <div className="page search-page">
+      <section className="search-hero">
+        <span className="eyebrow"><Search size={15} /> EXPLORAR WATCHPARTY</span>
+        <h1>Buscá lo que querés vivir.</h1>
+        <p>Encontrá equipos, partidos y personas de la comunidad.</p>
+        <label className="search-main-input">
+          <Search />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar equipos, partidos o usuarios…" autoFocus />
+          {query && <button type="button" onClick={() => setQuery("")} aria-label="Limpiar búsqueda">×</button>}
+        </label>
+        <div className="search-categories" aria-label="Filtrar búsqueda">
+          <button className={category === "all" ? "is-active" : ""} onClick={() => setCategory("all")}>Todo</button>
+          <button className={category === "teams" ? "is-active" : ""} onClick={() => setCategory("teams")}>Equipos</button>
+          <button className={category === "matches" ? "is-active" : ""} onClick={() => setCategory("matches")}>Partidos</button>
+          <button className={category === "users" ? "is-active" : ""} onClick={() => setCategory("users")}>Usuarios</button>
+        </div>
+      </section>
+
+      <section className="search-results">
+        <div className="search-results__heading">
+          <div><span className="eyebrow">{query ? "RESULTADOS" : "DESCUBRÍ"}</span><h2>{query ? `Resultados para “${query}”` : "Popular en WatchParty"}</h2></div>
+          <span>{resultCount} {resultCount === 1 ? "resultado" : "resultados"}</span>
+        </div>
+
+        {resultCount === 0 && <div className="search-empty"><Search /><h3>No encontramos resultados</h3><p>Probá con otro equipo, partido o usuario.</p></div>}
+
+        {(category === "all" || category === "teams") && visibleTeams.length > 0 && (
+          <div className="search-group">
+            <h3>Equipos</h3>
+            <div className="search-list">
+              {visibleTeams.map((team) => <button className="search-result-row" key={team.name}><TeamMark code={team.code} variant={team.variant} size="sm" /><span><strong>{team.name}</strong><small>{team.meta}</small></span><ChevronRight /></button>)}
+            </div>
+          </div>
+        )}
+
+        {(category === "all" || category === "matches") && visibleMatches.length > 0 && (
+          <div className="search-group">
+            <h3>Partidos</h3>
+            <div className="search-list">
+              {visibleMatches.map((match, index) => <button className="search-result-row" key={match.name} onClick={() => match.live ? openRoom() : undefined}><span className="search-match-marks"><TeamMark code={match.codes[0]} variant={index === 0 ? "red" : "navy"} size="sm" /><TeamMark code={match.codes[1]} variant={index === 0 ? "gold" : "red"} size="sm" /></span><span><strong>{match.name}</strong><small>{match.meta}</small></span><ChevronRight /></button>)}
+            </div>
+          </div>
+        )}
+
+        {(category === "all" || category === "users") && visibleUsers.length > 0 && (
+          <div className="search-group">
+            <h3>Usuarios</h3>
+            <div className="search-list">
+              {visibleUsers.map((user) => <button className="search-result-row" key={user.name}><Avatar initials={user.initials} tone={user.tone} /><span><strong>{user.name}</strong><small>{user.meta}</small></span><ChevronRight /></button>)}
+            </div>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function ProfileView({ openRoom }: { openRoom: (tab?: RoomTab) => void }) {
+  return (
+    <div className="page profile-page">
+      <section className="profile-hero">
+        <div className="profile-person">
+          <Avatar initials="FL" tone="green" size="lg" />
+          <div><span className="level-chip"><Zap size={13} fill="currentColor" /> NIVEL 8</span><h1>Francisco Lang</h1><p>Fanático del fútbol · Buenos Aires</p></div>
+        </div>
+        <div className="profile-actions"><button className="secondary-button">Editar perfil</button></div>
+        <div className="profile-stats"><div><strong>28</strong><span>Partidos vistos</span></div><div><strong>19</strong><span>Calificaciones</span></div><div><strong>146</strong><span>Comentarios</span></div><div><strong>8</strong><span>Racha semanal</span></div></div>
+      </section>
+
+      <section className="profile-content">
+        <div className="history-panel">
+          <div className="section-heading"><div><span className="eyebrow"><History size={15} /> TU HISTORIAL</span><h2>Partidos que viviste</h2></div><button>Ver todos <ChevronRight size={16} /></button></div>
+          {historyMatches.map((match) => <article className="history-row" key={match.date + match.home}><span>{match.date}</span><TeamMark code={match.code} variant={match.home === "River" ? "red" : match.home === "Argentina" ? "sky" : "navy"} size="sm" /><div><strong>{match.home} <em>{match.result}</em> {match.away}</strong><small>Torneo Apertura</small></div><span className="score-chip"><Star size={13} fill="currentColor" /> {match.rating}</span><button aria-label="Ver partido"><ChevronRight /></button></article>)}
+        </div>
+
+        <div className="profile-cards">
+          <div className="favorite-card">
+            <h3>Tu equipo favorito</h3>
+            <div><TeamMark code="RIV" variant="red" /><span><strong>River Plate</strong><small>8 partidos registrados</small></span></div>
+            <button onClick={() => openRoom("rating")}>Calificar partido actual <ChevronRight size={16} /></button>
+          </div>
+          <div className="achievement-card">
+            <span><Trophy /></span>
+            <p className="eyebrow">PRÓXIMO LOGRO</p>
+            <h3>Voz de la tribuna</h3>
+            <p>Publicá 4 comentarios más para desbloquear este logro.</p>
+            <div className="progress-bar"><span style={{ width: "72%" }} /></div>
+            <small>18 de 25 comentarios</small>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
 }

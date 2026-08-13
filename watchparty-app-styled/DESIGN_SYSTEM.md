@@ -73,9 +73,10 @@ El verde del modo claro es más profundo que el verde eléctrico del modo oscuro
 - Las animaciones respetan `prefers-reduced-motion`.
 
 ## Arquitectura principal de navegación
-La navegación del MVP se simplifica a **tres pestañas principales**:
+La navegación del MVP utiliza **cuatro pestañas principales**:
 - **Inicio:** feed social. En la parte superior se muestra únicamente la sala activa del equipo favorito del usuario; debajo aparece la actividad social.
 - **Salas:** directorio de salas por partido. La sala del equipo favorito se prioriza y luego aparecen otras salas disponibles o próximas.
-- **Perfil:** historial, estadísticas personales, equipo favorito y configuración de la cuenta.
+- **Buscar:** búsqueda unificada de equipos, partidos y usuarios, con filtros por categoría.
+- **Perfil:** historial y estadísticas personales. Debajo del historial aparecen, en este orden, la card de **equipo favorito** y la card de **próximo logro**.
 
-La vista interna de una sala no funciona como una cuarta pestaña: se abre desde Inicio o Salas y mantiene **Salas** como sección activa en la navegación.
+La vista interna de una sala no funciona como una pestaña adicional: se abre desde Inicio, Salas o Buscar y mantiene **Salas** como sección activa en la navegación. La esquina superior derecha se reserva para acciones globales: tema, notificaciones y **Cerrar sesión**; no se repite el acceso al perfil allí.

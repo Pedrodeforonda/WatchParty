@@ -71,3 +71,11 @@ El verde del modo claro es más profundo que el verde eléctrico del modo oscuro
 - Se evita el flash inicial del tema incorrecto mediante un script previo a la hidratación.
 - El control usa iconos `Sun` / `Moon` de Lucide.
 - Las animaciones respetan `prefers-reduced-motion`.
+
+## Arquitectura principal de navegación
+La navegación del MVP se simplifica a **tres pestañas principales**:
+- **Inicio:** feed social. En la parte superior se muestra únicamente la sala activa del equipo favorito del usuario; debajo aparece la actividad social.
+- **Salas:** directorio de salas por partido. La sala del equipo favorito se prioriza y luego aparecen otras salas disponibles o próximas.
+- **Perfil:** historial, estadísticas personales, equipo favorito y configuración de la cuenta.
+
+La vista interna de una sala no funciona como una cuarta pestaña: se abre desde Inicio o Salas y mantiene **Salas** como sección activa en la navegación.

@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
-type View = "home" | "room" | "social" | "profile";
+type View = "home" | "rooms" | "room" | "profile";
 type RoomTab = "chat" | "stats" | "rating";
 type Theme = "dark" | "light";
 
@@ -197,9 +197,8 @@ export default function HomePage() {
         <button className="brand" onClick={() => navigate("home")} aria-label="WatchParty, ir al inicio"><span className="brand-ball"><span /></span><span>Watch<strong>Party</strong></span></button>
         <nav className="desktop-nav" aria-label="Navegación principal">
           <NavButton active={view === "home"} icon={<Home />} onClick={() => navigate("home")}>Inicio</NavButton>
-          <NavButton active={view === "room"} icon={<Play />} onClick={() => openRoom()}>En vivo</NavButton>
-          <NavButton active={view === "social"} icon={<Users />} onClick={() => navigate("social")}>Comunidad</NavButton>
-          <NavButton active={view === "profile"} icon={<CircleUserRound />} onClick={() => navigate("profile")}>Mi perfil</NavButton>
+          <NavButton active={view === "rooms" || view === "room"} icon={<MessageCircle />} onClick={() => navigate("rooms")}>Salas</NavButton>
+          <NavButton active={view === "profile"} icon={<CircleUserRound />} onClick={() => navigate("profile")}>Perfil</NavButton>
         </nav>
         <div className="topbar-actions">
           <button
@@ -217,7 +216,8 @@ export default function HomePage() {
         {searchOpen && <div className="search-popover"><Search size={18} /><input autoFocus placeholder="Buscar equipos, partidos o usuarios…" /><kbd>ESC</kbd></div>}
       </header>
 
-      {view === "home" && <HomeView openRoom={openRoom} liveParticipants={liveParticipants} navigate={navigate} />}
+      {view === "home" && <HomeView openRoom={openRoom} liveParticipants={liveParticipants} />}
+      {view === "rooms" && <RoomsView openRoom={openRoom} liveParticipants={liveParticipants} />}
       {view === "room" && (
         <MatchRoom
           roomTab={roomTab}
@@ -235,63 +235,95 @@ export default function HomePage() {
           ratingSent={ratingSent}
           submitRating={() => setRatingSent(true)}
           liveParticipants={liveParticipants}
-          back={() => navigate("home")}
+          back={() => navigate("rooms")}
         />
       )}
-      {view === "social" && <SocialView openRoom={openRoom} />}
       {view === "profile" && <ProfileView onLogout={() => setLoggedIn(false)} openRoom={openRoom} />}
 
       <nav className="mobile-nav" aria-label="Navegación móvil">
         <NavButton active={view === "home"} icon={<Home />} onClick={() => navigate("home")}>Inicio</NavButton>
-        <NavButton active={view === "room"} icon={<Play />} onClick={() => openRoom()}>En vivo</NavButton>
-        <NavButton active={view === "social"} icon={<Users />} onClick={() => navigate("social")}>Social</NavButton>
+        <NavButton active={view === "rooms" || view === "room"} icon={<MessageCircle />} onClick={() => navigate("rooms")}>Salas</NavButton>
         <NavButton active={view === "profile"} icon={<CircleUserRound />} onClick={() => navigate("profile")}>Perfil</NavButton>
       </nav>
     </main>
   );
 }
 
-function HomeView({ openRoom, liveParticipants, navigate }: { openRoom: (tab?: RoomTab) => void; liveParticipants: number; navigate: (view: View) => void }) {
+function HomeView({ openRoom, liveParticipants }: { openRoom: (tab?: RoomTab) => void; liveParticipants: number }) {
   return (
-    <div className="page page--home">
-      <section className="mobile-home-intro">
-        <div>
-          <span>MIÉRCOLES, 5 DE AGOSTO</span>
-          <h1>Hola, Fran 👋</h1>
-          <p>Hay un partidazo esperándote.</p>
-        </div>
-        <Avatar initials="FL" tone="green" />
-      </section>
-
-      <section className="home-hero">
-        <div className="hero-match">
-          <div className="hero-match__top"><span className="live-pill"><span /> EN VIVO</span><button aria-label="Más opciones"><MoreHorizontal /></button></div>
-          <p className="competition">TORNEO APERTURA · FECHA 7</p>
-          <div className="scoreboard">
-            <div><TeamMark code="RIV" variant="red" size="lg" /><strong>River Plate</strong></div>
-            <section><span>68:14</span><div><strong>1</strong><small>—</small><strong>1</strong></div><em>Segundo tiempo</em></section>
-            <div><TeamMark code="BOC" variant="gold" size="lg" /><strong>Boca Juniors</strong></div>
+    <div className="page page--feed-home">
+      <section className="favorite-room-card" aria-label="Sala de tu equipo favorito">
+        <div className="favorite-room__top">
+          <div>
+            <span className="favorite-room__label"><Star size={14} fill="currentColor" /> SALA DE TU EQUIPO</span>
+            <span className="live-pill"><span /> EN VIVO · 68&apos;</span>
           </div>
-          <div className="match-event"><span className="event-dot" /><div><strong>Atajada de Marchesín</strong><small>Remate desde fuera del área · 67&apos;</small></div><Flame size={18} /></div>
-          <button className="room-entry" onClick={() => openRoom()}><span><MessageCircle size={18} /><strong>{liveParticipants.toLocaleString("es-AR")}</strong> en la sala</span><span>Sumarme <ChevronRight size={18} /></span></button>
-          <div className="floating-reaction floating-reaction--one">🔥 <strong>284</strong></div><div className="floating-reaction floating-reaction--two">👏 <strong>176</strong></div>
+          <button className="favorite-room__more" aria-label="Más opciones"><MoreHorizontal /></button>
+        </div>
+
+        <div className="favorite-room__match">
+          <div className="favorite-room__team"><TeamMark code="RIV" variant="red" size="md" /><span><strong>River Plate</strong><small>Tu equipo favorito</small></span></div>
+          <div className="favorite-room__score"><span>68:14</span><div><strong>1</strong><small>—</small><strong>1</strong></div><em>Segundo tiempo</em></div>
+          <div className="favorite-room__team favorite-room__team--away"><span><strong>Boca Juniors</strong><small>Visitante</small></span><TeamMark code="BOC" variant="gold" size="md" /></div>
+        </div>
+
+        <div className="favorite-room__footer">
+          <div className="favorite-room__people">
+            <div className="avatar-stack"><Avatar initials="LC" tone="purple" size="sm" /><Avatar initials="MR" tone="blue" size="sm" /><Avatar initials="SM" tone="green" size="sm" /><span>+2k</span></div>
+            <span><strong>{liveParticipants.toLocaleString("es-AR")}</strong> personas comentando</span>
+          </div>
+          <button className="primary-button" onClick={() => openRoom()}><MessageCircle size={17} /> Entrar a la sala</button>
         </div>
       </section>
 
-      <section className="quick-actions" aria-label="Accesos rápidos">
-        <button onClick={() => openRoom()}><span><MessageCircle /></span><strong>Sala en vivo</strong><small>Comentá ahora</small></button>
-        <button onClick={() => openRoom("rating")}><span><Star /></span><strong>Calificar</strong><small>Partido y jugadores</small></button>
-        <button onClick={() => navigate("profile")}><span><History /></span><strong>Mi historial</strong><small>28 partidos</small></button>
+      <section className="home-feed-section">
+        <div className="feed-title-row">
+          <div><span className="eyebrow"><Users size={15} /> ACTIVIDAD</span><h2>Tu feed</h2></div>
+          <div className="feed-filter" aria-label="Filtro del feed"><button className="is-active">Para vos</button><button>Siguiendo</button></div>
+        </div>
+
+        <div className="feed-home-list">
+          {feedItems.map((item) => (
+            <article className="feed-card feed-card--home" key={item.name + item.time}>
+              <header><Avatar initials={item.initials} tone={item.tone} /><div><strong>{item.name}</strong><span>{item.action} · {item.time}</span></div><button aria-label="Más opciones"><MoreHorizontal /></button></header>
+              <div className="feed-match"><TeamMark code={item.match.startsWith("River") ? "RIV" : "ARG"} variant={item.match.startsWith("River") ? "red" : "sky"} /><strong>{item.match}</strong>{item.score && <span className="score-chip"><Star size={13} fill="currentColor" /> {item.score}</span>}</div>
+              <p>{item.text}</p>
+              <footer><button><Heart /> 24</button><button><MessageCircle /> 6</button><button><Share2 /> Compartir</button></footer>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function RoomsView({ openRoom, liveParticipants }: { openRoom: (tab?: RoomTab) => void; liveParticipants: number }) {
+  return (
+    <div className="page rooms-page">
+      <section className="page-heading rooms-heading">
+        <div><span className="eyebrow"><MessageCircle size={15} /> SALAS</span><h1>Partidos para compartir.</h1><p>Entrá a una sala, comentá el partido y vivilo con otros fanáticos.</p></div>
       </section>
 
-      <section className="content-section">
-        <div className="section-heading"><div><span className="eyebrow"><CalendarDays size={15} /> ESTA SEMANA</span><h2>Próximos partidos</h2></div><button>Ver todos <ChevronRight size={16} /></button></div>
-        <div className="upcoming-grid">{upcomingMatches.map((match, index) => <article className="match-card" key={match.home}><div className="match-card__meta"><span>{match.day} · {match.time}</span><button aria-label="Agregar al calendario"><CalendarDays /></button></div><div className="match-card__teams"><div><TeamMark code={match.homeCode} variant={index === 0 ? "sky" : index === 1 ? "red" : "gold"} /><strong>{match.home}</strong></div><span>VS</span><div><TeamMark code={match.awayCode} variant={index === 0 ? "red" : index === 1 ? "gold" : "red"} /><strong>{match.away}</strong></div></div><div className="match-card__footer"><span><Users size={14} /> {match.watchers} interesados</span><button onClick={() => openRoom()}>Ver previa</button></div></article>)}</div>
+      <section className="rooms-featured">
+        <div className="section-heading"><div><span className="eyebrow"><Star size={15} fill="currentColor" /> TU EQUIPO</span><h2>River está jugando ahora</h2></div></div>
+        <article className="room-directory-card room-directory-card--live">
+          <div className="room-directory-card__meta"><span className="live-pill"><span /> EN VIVO · 68&apos;</span><span>Torneo Apertura · Fecha 7</span></div>
+          <div className="room-directory-card__match"><div><TeamMark code="RIV" variant="red" /><strong>River Plate</strong></div><section><strong>1</strong><span>—</span><strong>1</strong></section><div><TeamMark code="BOC" variant="gold" /><strong>Boca Juniors</strong></div></div>
+          <div className="room-directory-card__footer"><span><Users size={16} /> {liveParticipants.toLocaleString("es-AR")} en la sala</span><button className="primary-button" onClick={() => openRoom()}>Entrar a la sala <ChevronRight size={17} /></button></div>
+        </article>
       </section>
 
-      <section className="home-community">
-        <div><span className="eyebrow eyebrow--light"><Users size={15} /> DE TU COMUNIDAD</span><h2>La tribuna sigue hablando.</h2><p>Opiniones y calificaciones de las personas que seguís.</p><button className="light-button" onClick={() => navigate("social")}>Ver actividad <ChevronRight size={17} /></button></div>
-        <article className="quote-card"><div><Avatar initials="LC" tone="purple" /><span><strong>Lucía Cabrera</strong><small>Fanática de River · Nivel 12</small></span><span className="score-chip"><Star size={13} fill="currentColor" /> 4.5</span></div><p>“Un segundo tiempo de esos que no te dejan mirar el celular. El empate fue justo, pero los arqueros se llevaron todo.”</p><footer><span>River 1–1 Boca</span><small>Hace 2 minutos</small></footer></article>
+      <section className="rooms-other">
+        <div className="section-heading"><div><span className="eyebrow"><CalendarDays size={15} /> PRÓXIMAS</span><h2>Otras salas</h2></div></div>
+        <div className="rooms-grid">
+          {upcomingMatches.map((match, index) => (
+            <article className="room-list-card" key={match.home}>
+              <header><span>{match.day} · {match.time}</span><span className="room-status">PRÓXIMAMENTE</span></header>
+              <div className="room-list-card__teams"><div><TeamMark code={match.homeCode} variant={index === 0 ? "sky" : index === 1 ? "red" : "gold"} size="sm" /><strong>{match.home}</strong></div><span>VS</span><div><TeamMark code={match.awayCode} variant={index === 0 ? "red" : index === 1 ? "gold" : "red"} size="sm" /><strong>{match.away}</strong></div></div>
+              <footer><span><Users size={14} /> {match.watchers} interesados</span><button onClick={() => openRoom()}>Ver sala <ChevronRight size={15} /></button></footer>
+            </article>
+          ))}
+        </div>
       </section>
     </div>
   );
@@ -339,10 +371,6 @@ function StatsPanel() {
 
 function RatingPanel(props: { matchRating: number; setMatchRating: (value: number) => void; playerRatings: Record<string, number>; ratePlayer: (name: string, value: number) => void; ratingSent: boolean; submitRating: () => void; players: { name: string; role: string; number: number; initials: string }[] }) {
   return <section className="rating-panel"><div className="rating-intro"><span className="rating-orb"><Star fill="currentColor" /></span><div><h2>¿Qué te pareció el partido?</h2><p>Tu calificación ayuda a construir la voz de la comunidad.</p></div><RatingStars value={props.matchRating} onChange={props.setMatchRating} /></div><div className="player-rating-list"><div className="player-rating-title"><h3>Calificá a los protagonistas</h3><span>Opcional</span></div>{props.players.map((player) => <article key={player.name}><Avatar initials={player.initials} tone="blue" /><div><strong>{player.name}</strong><small>#{player.number} · {player.role}</small></div><RatingStars compact value={props.playerRatings[player.name] ?? 0} onChange={(rating) => props.ratePlayer(player.name, rating)} /></article>)}</div>{props.ratingSent ? <div className="rating-success"><Sparkles size={19} /> ¡Listo! Tu calificación ya forma parte de la comunidad.</div> : <button className="primary-button primary-button--full" disabled={!props.matchRating} onClick={props.submitRating}>Publicar calificación <ChevronRight size={18} /></button>}</section>;
-}
-
-function SocialView({ openRoom }: { openRoom: (tab?: RoomTab) => void }) {
-  return <div className="page social-page"><section className="page-heading"><div><span className="eyebrow"><Users size={15} /> COMUNIDAD WATCHPARTY</span><h1>La conversación sigue.</h1><p>Opiniones, calificaciones y partidos de fanáticos que comparten tu pasión.</p></div><button className="primary-button" onClick={() => openRoom()}><Play size={17} fill="currentColor" /> Ir al partido en vivo</button></section><div className="social-layout"><section className="feed-list"><div className="feed-filter"><button className="is-active">Para vos</button><button>Siguiendo</button><button>Destacados</button></div>{feedItems.map((item) => <article className="feed-card" key={item.name + item.time}><header><Avatar initials={item.initials} tone={item.tone} /><div><strong>{item.name}</strong><span>{item.action} · {item.time}</span></div><button aria-label="Más opciones"><MoreHorizontal /></button></header><div className="feed-match"><TeamMark code={item.match.startsWith("River") ? "RIV" : "ARG"} variant={item.match.startsWith("River") ? "red" : "sky"} /><strong>{item.match}</strong>{item.score && <span className="score-chip"><Star size={13} fill="currentColor" /> {item.score}</span>}</div><p>{item.text}</p><footer><button><Heart /> 24</button><button><MessageCircle /> 6</button><button><Share2 /> Compartir</button></footer></article>)}</section><aside className="social-aside"><div className="aside-card"><h3>Temas del momento</h3>{["#Superclásico", "#Fecha7", "#GolDelDía", "#LaFigura"].map((tag, i) => <button key={tag}><span><strong>{tag}</strong><small>{["3,8 mil", "2,4 mil", "1,9 mil", "1,2 mil"][i]} publicaciones</small></span><ChevronRight size={16} /></button>)}</div><div className="aside-card"><h3>A quién seguir</h3>{initialMessages.slice(0, 3).map((user) => <div className="follow-user" key={user.id}><Avatar initials={user.initials} tone={user.tone} size="sm" /><span><strong>{user.name}</strong><small>Nivel {user.id + 8}</small></span><button>Seguir</button></div>)}</div></aside></div></div>;
 }
 
 function ProfileView({ onLogout, openRoom }: { onLogout: () => void; openRoom: (tab?: RoomTab) => void }) {

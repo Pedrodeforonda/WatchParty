@@ -34,3 +34,11 @@ El sistema visual está documentado en `DESIGN_SYSTEM.md`.
 
 ## Temas
 El prototipo incluye Dark Mode y Light Mode. El usuario puede alternarlos desde el botón Sol/Luna de la barra superior. La elección queda persistida en el navegador y, si no existe una preferencia guardada, se toma el tema del sistema operativo.
+
+## Navegación actual
+El prototipo usa tres pestañas principales:
+- **Inicio:** sala del equipo favorito en la parte superior + feed social.
+- **Salas:** directorio de salas de partidos.
+- **Perfil:** historial y cuenta del usuario.
+
+La pantalla interna de una sala se abre desde Inicio o Salas y no agrega una cuarta pestaña a la navegación.
